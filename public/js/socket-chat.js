@@ -1,12 +1,10 @@
 var socket = io();
 
 var params = new URLSearchParams(window.location.search);
-//si no ingresamos nombre en http:localhost:3000/chat.html?nombre=el nombre
-//nos devuelve a la pagina de inicio->localhost:3000/index.html
 
 if (!params.has('nombre') || !params.has('sala')) {
     window.location = 'index.html';
-    throw new Error('El nombre y la sala son necesarios');
+    throw new Error('El nombre y sala son necesarios');
 }
 
 var usuario = {
@@ -14,54 +12,53 @@ var usuario = {
     sala: params.get('sala')
 };
 
-//cuando se dispara. en el servidor se activa
-//io.on->console.log("usuario conectado")
+
 
 socket.on('connect', function() {
     console.log('Conectado al servidor');
 
     socket.emit('entrarChat', usuario, function(resp) {
-        console.log('usuarios conectados', resp);
+        // console.log('Usuarios conectados', resp);
+        renderizarUsuarios(resp);
     });
 
 });
+
 // escuchar
 socket.on('disconnect', function() {
 
     console.log('Perdimos conexión con el servidor');
 
 });
+console.clear()
 
+// Enviar información
+// socket.emit('crearMensaje', {
+//     nombre: 'Fernando',
+//     mensaje: 'Hola Mundo'
+// }, function(resp) {
+//     console.log('respuesta server: ', resp);
+// });
 
-// Enviar información. Esta información sólo se envía
-//NO CUANDO SE ABRE NAVEGADOR CLIENTE. SINO CUANDO SE INTERACTUA CON EL.
-/* socket.emit('crearMensaje', {
-    usuario: 'Fernando',
-    mensaje: 'Hola Mundo'
-}, function(resp) {
-    console.log('respuesta server: ', resp);
-}); */
-
-// Escuchar información
+// imprimimos el mensaje del administrador
+//de que xxxx->"se unio"
 socket.on('crearMensaje', function(mensaje) {
-
-    console.log('Servidor:', mensaje);
-
-});
-
-//cuando un usuario entra o sale del chat.
-//visualizamos los que estan conectados
-
-socket.on('listaPersonas', function(personas) {
-
-    console.log(personas);
+    //console.log('Servidor:', mensaje);
+    renderizarMensajes(mensaje, false);
+    scrollBottom();
 
 });
 
-//Mensaje a un usuario determinado:
-//acción de escuchar del cliente
+// Escuchar cambios de usuarios
+// cuando un usuario entra o sale del chat
+socket.on('listaPersona', function(personas) {
+    // console.log(personas);
+    renderizarUsuarios(personas);
+});
 
+// Mensajes privados
 socket.on('mensajePrivado', function(mensaje) {
 
     console.log('Mensaje Privado:', mensaje);
-})
+
+});
